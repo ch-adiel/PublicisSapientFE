@@ -14,7 +14,7 @@ export class AppComponent implements OnInit {
   ngOnInit(): void {
     this.getAllCards();
   }
-  displayedColumns: string[] = ['position', 'name', 'weight', 'symbol'];
+  displayedColumns: string[] = ['CardName', 'CardNumber', 'Balance', 'CardLimit'];
 
   public name: string = "";
   public card: string = "";
@@ -30,7 +30,8 @@ export class AppComponent implements OnInit {
         .subscribe(response => {
           if (response) {
             if (response.status) {
-              this._snackBar.open("Success", response.message);
+              this._snackBar.open(response.message);
+              this.getAllCards();
             }
             else {
               this._snackBar.open("Error", response.message);
@@ -39,10 +40,12 @@ export class AppComponent implements OnInit {
           else {
             this._snackBar.open("Error", "Something went wrong");
           }
+        },
+        err => {
+          if(err) {
+            this._snackBar.open("Error", err.error.Message);
+          }
         });
-    }
-    else {
-      this._snackBar.open("Error", "Not Valid");
     }
   }
 
@@ -51,9 +54,11 @@ export class AppComponent implements OnInit {
       .subscribe(response => {
         if (response) {
           if (response.status) {
+            const data: CreditCardResponse[] = [];
             response.data.map((d: any) => {
-              this.allCards.push(new CreditCardResponse(d));
+              data.push(new CreditCardResponse(d));
             });
+            this.allCards = data;
           }
           else {
             this._snackBar.open("Error", response.message);
@@ -67,9 +72,25 @@ export class AppComponent implements OnInit {
 
   getModel(): CreditCardRequest | null {
     if (this.name && this.card && this.limit) {
+      if (this.card.length != 16) {
+        this._snackBar.open("Error", "Card number not valid");
+        return null;
+      }
+      if (Number(this.limit) < 0) {
+        this._snackBar.open("Error", "Limit cannot be in negative");
+        return null;
+      }
       return new CreditCardRequest(this.name, this.card, Number(this.limit));
     }
     else {
+      if (this.card.length != 16) {
+        this._snackBar.open("Error", "Card number not valid");
+        return null;
+      }
+      if (Number(this.limit) < 0) {
+        this._snackBar.open("Error", "Limit cannot be in negative");
+        return null;
+      }
       return null;
     }
   }
